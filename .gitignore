@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Environment
+.env
+.env.*
+
+# Model weights
+assets/*.pt
+
+# Training outputs
+runs/
+*.log
+
+# Generated files
+data.json
