@@ -1,5 +1,5 @@
 
-from typing import Literal, Union
+from typing import Literal, Optional, Union
 from pydantic import Field
 
 from sdks.novavision.src.base.model import (
@@ -36,7 +36,7 @@ class Confidence(Config):
     name: Literal["confidence"] = "confidence"
     value: float = Field(default=0.25, ge=0, le=1)
     type: Literal["number"] = "number"
-    field: Literal["numberInput"] = "numberInput"
+    field: Literal["textInput"] = "textInput"
 
     class Config:
         title = "Confidence Threshold"
@@ -46,15 +46,15 @@ class IoUThreshold(Config):
     name: Literal["iou_threshold"] = "iou_threshold"
     value: float = Field(default=0.45, ge=0, le=1)
     type: Literal["number"] = "number"
-    field: Literal["numberInput"] = "numberInput"
+    field: Literal["textInput"] = "textInput"
 
     class Config:
         title = "IoU Threshold"
 
 
 class RailwayConfigs(Configs):
-    confidence: Confidence
-    iou_threshold: IoUThreshold
+    confidence: Confidence = Field(default_factory=Confidence)
+    iou_threshold: IoUThreshold = Field(default_factory=IoUThreshold)
 
 
 class DetectionsOutput(Output):
@@ -71,8 +71,8 @@ class RailwayOutputs(Outputs):
 
 
 class PackageRequest(Request):
-    inputs: RailwayInputs
-    configs: RailwayConfigs
+    inputs: Optional[RailwayInputs] = None
+    configs: RailwayConfigs = Field(default_factory=RailwayConfigs)
 
     class Config:
         json_schema_extra = {"target": "configs"}
