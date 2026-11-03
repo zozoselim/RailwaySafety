@@ -5,6 +5,7 @@ from pydantic import Field
 from sdks.novavision.src.base.model import (
     Config,
     Configs,
+    Input,
     Inputs,
     Output,
     Outputs,
