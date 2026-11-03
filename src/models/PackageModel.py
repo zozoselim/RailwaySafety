@@ -14,7 +14,7 @@ from sdks.novavision.src.base.model import (
 )
 
 
-class ImageInput(Config):
+class ImageInput(Input):
     name: Literal["image"] = "image"
     value: str = ""
     type: Literal["string"] = "string"
