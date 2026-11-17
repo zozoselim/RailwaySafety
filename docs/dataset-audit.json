@@ -1,0 +1,45 @@
+{
+  "names": {
+    "0": "rail_crack",
+    "1": "fastener_defect",
+    "2": "broken_sleeper",
+    "3": "obstacle"
+  },
+  "splits": {
+    "train": {
+      "images": 1376,
+      "missing_labels": 0,
+      "empty_labels": 0,
+      "objects": {
+        "rail_crack": 221,
+        "fastener_defect": 986,
+        "broken_sleeper": 26,
+        "obstacle": 3315
+      }
+    },
+    "val": {
+      "images": 214,
+      "missing_labels": 0,
+      "empty_labels": 0,
+      "objects": {
+        "rail_crack": 17,
+        "fastener_defect": 85,
+        "broken_sleeper": 18,
+        "obstacle": 917
+      }
+    },
+    "test": {
+      "images": 184,
+      "missing_labels": 0,
+      "empty_labels": 0,
+      "objects": {
+        "rail_crack": 33,
+        "fastener_defect": 109,
+        "broken_sleeper": 17,
+        "obstacle": 445
+      }
+    }
+  },
+  "issues": [],
+  "cross_split_exact_duplicates": []
+}

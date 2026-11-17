@@ -1,4 +1,4 @@
 ultralytics==8.4.198
-Pillow
+Pillow>=10.1
 numpy
 PyYAML

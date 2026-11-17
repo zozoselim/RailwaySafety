@@ -1,0 +1,50 @@
+{
+  "split": "test",
+  "ultralytics_version": "8.4.198",
+  "torch_version": "2.15.0+cpu",
+  "device": "cpu",
+  "model_sha256": "191efd08812002d7978033d108be6d2bab4f6b365400a1278df9e24c8ae83a94",
+  "metrics": {
+    "metrics/precision(B)": 0.7813253939432043,
+    "metrics/recall(B)": 0.7742848482184019,
+    "metrics/mAP50(B)": 0.8350868053904504,
+    "metrics/mAP50-95(B)": 0.43335267380165127,
+    "fitness": 0.43335267380165127
+  },
+  "evaluated_class_ids": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "per_class_map50_95": {
+    "0": {
+      "name": "rail_crack",
+      "precision": 0.7119016269564536,
+      "recall": 0.5454545454545454,
+      "map50": 0.6298230168805204,
+      "map50_95": 0.31977413017435224
+    },
+    "1": {
+      "name": "fastener_defect",
+      "precision": 0.8427507655287171,
+      "recall": 0.6422018348623854,
+      "map50": 0.7613220525953585,
+      "map50_95": 0.39075085640957247
+    },
+    "2": {
+      "name": "broken_sleeper",
+      "precision": 0.6544127512699898,
+      "recall": 1.0,
+      "map50": 0.995,
+      "map50_95": 0.4970808949952364
+    },
+    "3": {
+      "name": "obstacle",
+      "precision": 0.9162364320176567,
+      "recall": 0.9094830125566769,
+      "map50": 0.954202152085923,
+      "map50_95": 0.5258048136274439
+    }
+  }
+}
