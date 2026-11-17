@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="novavision-railway-safety",
-    version="0.2.0",
+    version="0.2.1",
     description="Railway defect detection component",
 
     install_requires=[

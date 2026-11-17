@@ -15,13 +15,13 @@ from sdks.novavision.src.base.component import Component
 
 if __package__:
     from ..models.PackageModel import PackageModel
-    from ..utils.inference import detect, detect_image
+    from ..utils.inference import detect_image
     from ..utils.response import build_response
 else:
     from components.RailwaySafety.src.models.PackageModel import (
         PackageModel,
     )
-    from components.RailwaySafety.src.utils.inference import detect, detect_image
+    from components.RailwaySafety.src.utils.inference import detect_image
     from components.RailwaySafety.src.utils.response import build_response
 
 
@@ -38,7 +38,6 @@ class RailwaySafety(Component):
         return {}
 
     def run(self):
-        image = self.request.get_param("image")
         native_image = self.request.get_param("inputImage")
         confidence = self.request.get_param("confidence")
         iou = self.request.get_param("iou_threshold")
@@ -49,6 +48,10 @@ class RailwaySafety(Component):
                         iou=iou if iou is not None else 0.45,
                         device=device if device is not None else "cpu",
                         image_size=image_size if image_size is not None else 640)
+        if isinstance(native_image, list):
+            if len(native_image) != 1:
+                raise ValueError("RailwaySafety expects exactly one image per execution.")
+            native_image = native_image[0]
         if native_image is not None:
             from sdks.novavision.src.media.image import Image as SDKImage
             from PIL import Image as PILImage
@@ -63,7 +66,7 @@ class RailwaySafety(Component):
                 raise ValueError("Expected a three-channel NovaVision BGR frame.")
             self.detections = detect_image(PILImage.fromarray(array[:, :, ::-1].astype(np.uint8)), **settings)
         else:
-            self.detections = detect(image_base64=image, **settings)
+            raise ValueError("Connect Image Load or Video Feed to inputImage.")
 
         self.native_detections = []
         for item in json.loads(self.detections)["detections"]:

@@ -25,13 +25,17 @@ alan adları farklıysa o sürümün mevcut düğümlerini esas al.
 Dosyalar: `src/models/PackageModel.py`, `src/executors/RailwaySafety.py`,
 `src/utils/response.py`. Executor adı `RailwaySafety`, paket türü `component`.
 
-Girdi `inputImage`: Video Feed'in tek SDK Image nesnesi. Gerçek SDK'nın
+Girdi `inputImage`: Image Load / Video Feed'in SDK Image nesnesi. 0.2.1'de
+doğrudan zorunlu şema referansıdır; nullable/isteğe bağlı giriş kullanılmaz.
+Image Load ile uyum için tek Image veya tek elemanlı Image listesi kabul edilir.
+Birden fazla görüntü içeren liste açık hata üretir. Gerçek SDK'nın
 `Image.get_frame` yardımcısıyla bytes/Base64/medya deposu/Redis taşıması çözülür.
 Kare BGR'den RGB'ye çevrilerek aynı modele verilir. Bozuk veya çözülemeyen
-görüntü hata üretir. Çoklu görüntü listesi bu sürümün sözleşmesinde yoktur.
+görüntü hata üretir.
 
-Girdi `image`: PNG/JPEG vb. dosyanın Base64 metni veya `data:image/...;base64,`
-URL'si. İki giriş birlikte verilirse native `inputImage` kullanılır.
+Yerel dosya/Base64 çıkarımı platform girişinden ayrıdır: `apps/client.py`
+ve `src.utils.inference.detect` üzerinden çalışır. Paket şemasında yalnızca
+native `inputImage` vardır.
 
 | Ayar | Varsayılan | Anlamı |
 | --- | --- | --- |

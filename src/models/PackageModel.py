@@ -1,6 +1,6 @@
 
-from typing import List, Literal, Optional, Union
-from pydantic import Field
+from typing import List, Literal, Union
+from pydantic import Field, validator
 
 from sdks.novavision.src.base.model import (
     Config,
@@ -17,31 +17,23 @@ from sdks.novavision.src.base.model import (
 )
 
 
-class ImageInput(Input):
-    name: Literal["image"] = "image"
-    value: str = ""
-    type: Literal["string"] = "string"
-    field: Literal["textInput"] = "textInput"
-
-    class Config:
-        title = "Input Image (Base64)"
-        json_schema_extra = {
-            "shortDescription": "Base64 encoded railway image."
-        }
-
-
 class NativeImageInput(Input):
     name: Literal["inputImage"] = "inputImage"
-    value: Image
-    type: Literal["object"] = "object"
+    value: Union[List[Image], Image]
+    type: str = "object"
+
+    @validator("type", pre=True, always=True)
+    def set_type_based_on_value(cls, value, values):
+        return "list" if isinstance(values.get("value"), list) else "object"
 
     class Config:
-        title = "Image (Video Feed)"
+        title = "Image (Image Load / Video Feed)"
 
 
 class RailwayInputs(Inputs):
-    image: Optional[ImageInput] = None
-    inputImage: Optional[NativeImageInput] = None
+    # Direct required reference, matching the platform's drawing components.
+    # Optional/null wrappers can hide the connector in the Flow editor.
+    inputImage: NativeImageInput
 
 
 class Confidence(Config):

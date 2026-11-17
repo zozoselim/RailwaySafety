@@ -15,7 +15,7 @@ from sdks.novavision.src.base.request import Request
 from src.executors.RailwaySafety import RailwaySafety
 from src.models.PackageModel import (
     PackageModel, PackageConfigs, ConfigExecutor, RailwaySafetyExecutor,
-    PackageRequest, RailwayInputs, ImageInput, NativeImageInput,
+    PackageRequest, RailwayInputs, NativeImageInput,
 )
 from sdks.novavision.src.base.model import Image as SDKImage
 
@@ -41,17 +41,30 @@ def run(inputs, size):
 
 
 def main():
+    schema = PackageModel.model_json_schema() if hasattr(PackageModel, "model_json_schema") else PackageModel.schema()
+    definitions = schema.get("$defs", schema.get("definitions"))
+    inputs = definitions["RailwayInputs"]
+    assert inputs["required"] == ["inputImage"]
+    assert "$ref" in inputs["properties"]["inputImage"]
+    assert "anyOf" not in inputs["properties"]["inputImage"]
     image = Image.open(sys.argv[1]).convert("RGB") if len(sys.argv) > 1 else Image.new("RGB", (64, 48), (255, 0, 0))
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
-    first = run(RailwayInputs(image=ImageInput(value=base64.b64encode(buffer.getvalue()).decode())), image.size)
     bgr = np.asarray(image)[:, :, ::-1].copy()
+    shape = base64.b64encode(np.array(bgr.shape, dtype=np.int64).tobytes()).decode()
+    encoded = SDKImage(name="frame", uID="frame-smoke", mimeType="image/png", type="image",
+                       encoding="base64", value=base64.b64encode(buffer.getvalue()).decode(), shape_key=shape)
+    first = run(RailwayInputs(inputImage=NativeImageInput(value=encoded)), image.size)
     native = SDKImage(name="frame", uID="frame-smoke", mimeType="image/png", type="image",
                       encoding="bytes", value=base64.b64encode(bgr.tobytes()).decode(),
                       shape_key=base64.b64encode(np.array(bgr.shape, dtype=np.int64).tobytes()).decode())
     second = run(RailwayInputs(inputImage=NativeImageInput(value=native)), image.size)
+    listed = NativeImageInput(value=[native])
+    assert listed.type == "list"
+    third = run(RailwayInputs(inputImage=listed), image.size)
     assert first == second, "Base64 and native BGR input must agree"
-    print("Real SDK + real model: Base64 and native bytes input, defaults and both outputs passed.")
+    assert second == third, "Image Load singleton lists must preserve detections"
+    print("Real SDK + real model: required input connector schema, native Base64/bytes/singleton-list inputs and both outputs passed.")
 
 
 if __name__ == "__main__":

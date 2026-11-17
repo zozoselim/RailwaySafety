@@ -53,9 +53,10 @@ Draw Bounding Box ──> Draw Label ──> Video View
 Alternatif olarak Models'e yüklenmiş aynı `best.pt`, hazır `YOLO Inference`
 düğümünde seçilebilir. Ayrıntılar: [NovaVision rehberi](docs/NOVAVISION.md).
 
-Özel pakette iki giriş yolu vardır: `inputImage` platformun tek Image nesnesi
-(SDK medya/Redis taşıması dahil); `image` yerel test için Base64 metni.
-İkisi verilirse `inputImage` kullanılır. Çıkışlar: `outputDetections` native
+Özel pakette zorunlu `inputImage` girişi Image Load / Video Feed görüntüsünü
+alır (SDK medya/Redis taşıması dahil). Tek Image veya tek elemanlı Image listesi
+kabul edilir; çoklu görüntü listesi reddedilir. Base64 dosya metniyle yerel
+test `apps/client.py` üzerinden yapılır. Çıkışlar: `outputDetections` native
 SDK Detection listesi, `detections` ayrıntılı JSON metni. Ayarlar confidence,
 iou_threshold, device, image_size. SDK ortamında şema: `python apps/export.py`.
 
@@ -101,3 +102,22 @@ gereksinimlerden çıkarılmıştır; gerçek `sdks.novavision` platformdan sağ
 [Doğrulama kaydı](docs/VERIFICATION.md) ve [dokuz iş kartı](docs/cards/README.md).
 Kartlar yerel Markdown dosyalarıdır; harici panoda oluşturulmuş sayılmazlar.
 Üretim kullanımı için saha testi ve AlfaSuite dağıtım kontrolü gereklidir.
+
+## 0.2.1: Flow editöründe görüntü girişi
+
+`RailwayInputs.inputImage`, platformun çizim paketleriyle aynı doğrudan,
+zorunlu şema referansını kullanır. Önceki iki isteğe bağlı giriş kaldırıldı.
+Paketin 0.2.1 sürümünü yükledikten sonra SDK ortamında `python apps/export.py`
+ile şemayı yeniden üret; platformdaki paket tanımını yenile ve eski Railway
+Safety düğümünü kaldırıp yeniden ekle. `inputImage` girişini bağla:
+
+```text
+Image Load.outputImage ──> Railway Safety.inputImage
+Image Load.outputImage ──> Draw Bounding Box.inputImage
+Railway Safety.outputDetections ──> Draw Bounding Box.inputDetections
+Draw Bounding Box.outputImage ──> Image View
+```
+
+Railway Safety'nin solunda giriş görünmüyorsa Flow hâlâ eski paket/şema
+tanımını kullanıyor olabilir. Kutu çizimi için `detections` JSON metnini değil,
+`outputDetections` listesini seç.

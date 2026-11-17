@@ -48,3 +48,22 @@ Canlı AlfaSuite hesabına uygulama kurulmadı, harici panoda kart oluşturulmad
 Hedef AlfaSuite Dev/Prod, canlı Redis/medya deposu,
 kamera/RTSP, GPU ve saha kabul testleri açık iş kartlarında belirtilir.
 Model eğitim not defteri hazırlanmıştır; yeni eğitim çalıştırılmamıştır.
+
+## 17 Kasım 2026 — 0.2.1 görüntü girişi düzeltmesi
+
+Flow ekran görüntüsünde Railway Safety düğümünün görüntü giriş noktası yoktu.
+Şemadaki iki nullable giriş yerine platform referans paketleriyle aynı şekilde
+zorunlu, doğrudan `inputImage` referansı tanımlandı. Image Load'un gerçek SDK
+modeli `diginova-opencv:latest` imajından kontrol edildi; tek Image ve Image
+listesi çıkışları verdiği doğrulandı. Tek elemanlı liste kabul edilir; boş ve
+çoklu listeler reddedilir.
+
+`apps/export.py` gerçek SDK ile tekrar çalıştı. `tests/sdk_smoke.py`
+`outputs/example-input.jpg` üzerinde gerçek modelle native Base64, native
+bytes ve tek elemanlı liste girişlerini test etti. Üç yolda aynı tespitler ve
+doğru native kutu dönüşümü doğrulandı. Girişin şemada required ve doğrudan
+referans olması ayrıca kontrol edildi. 13 birim testi tekrar geçti.
+
+AlfaSuite'in canlı Flow arayüzünde giriş noktasının görünmesi yerelden
+doğrulanmadı. Bunun için hedef paket/şema tanımı güncellenmeli ve mevcut
+Railway Safety düğümü yeni tanımla yeniden oluşturulmalıdır.
