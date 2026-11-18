@@ -6,7 +6,7 @@ import zipfile
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    destination = root / "dist/RailwaySafety-0.2.1.zip"
+    destination = root / "dist/RailwaySafety-0.2.2.zip"
     destination.parent.mkdir(exist_ok=True)
     files = []
     for directory in ("src", "apps", "assets", "docs", "notebooks", "tests"):

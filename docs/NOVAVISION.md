@@ -22,6 +22,27 @@ alan adları farklıysa o sürümün mevcut düğümlerini esas al.
 
 ## Özel RailwaySafety paketi
 
+### Çalışma kaydı (0.2.2)
+
+Paket kaydında executor `RailwaySafety` olmalıdır. `__init__` çalıştırıcı
+değildir. Platformun executor taramasında karışıklık oluşturmaması için
+`src/executors/__init__.py` bulunmaz; bu klasör Python namespace paketidir.
+
+RailwaySafety, PyTorch ve Ultralytics içeren çalışma imajına atanmalıdır.
+18 Kasım yerel uygulama incelemesinde `repos` kaydı `DigiNova/OpenCV` ve
+`executors: ["__init__"]` gösteriyordu. Çalışan OpenCV ortamında `torch` ve
+`ultralytics` yoktu. `assets/best.pt` de component klasörüne aktarılmamıştı.
+Bu ortam mevcut haliyle çıkarım yapamaz. Paket kaydını uygun PyTorch imajı
+ve `RailwaySafety` executor'ıyla yenile; uygulamayı tekrar deploy et.
+
+Kaynakların platforma aktarılmasında yalnızca `src/` kopyalanıyorsa ağırlık
+ayrıca çalışma ortamına sağlanmalıdır. Varsayılan component yolu:
+`/opt/project/components/RailwaySafety/assets/best.pt`.
+Alternatif olarak erişilebilir model dosyasının mutlak yolunu
+`RAILWAY_SAFETY_MODEL_PATH` ile belirt. Suite Models'e yüklenmiş bir model
+bu özel executor tarafından otomatik indirilmez; hazır YOLO Inference
+model seçicisi ayrı bir entegrasyondur.
+
 Dosyalar: `src/models/PackageModel.py`, `src/executors/RailwaySafety.py`,
 `src/utils/response.py`. Executor adı `RailwaySafety`, paket türü `component`.
 

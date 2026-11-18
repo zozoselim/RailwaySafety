@@ -67,3 +67,19 @@ referans olması ayrıca kontrol edildi. 13 birim testi tekrar geçti.
 AlfaSuite'in canlı Flow arayüzünde giriş noktasının görünmesi yerelden
 doğrulanmadı. Bunun için hedef paket/şema tanımı güncellenmeli ve mevcut
 Railway Safety düğümü yeni tanımla yeniden oluşturulmalıdır.
+
+## 18 Kasım 2026 — 0.2.2 çalışma kaydı incelemesi
+
+Yerel uygulama `repos` kaydında RailwaySafety için `DigiNova/OpenCV` imajı
+ve `executors: ["__init__"]` bulundu. Çalışan OpenCV konteynerinde `torch`,
+`ultralytics` ve model dosyası yoktu. Mevcut ağırlık, bu yerel deployment'ın
+component `assets/best.pt` yoluna kopyalandı ve konteynerden 5503194 byte
+olarak doğrulandı. Yeniden deploy sırasında ağırlığın ayrıca aktarılması
+gerektiği entegrasyon rehberinde açıklandı.
+
+Executor taramasının `__init__` seçmesini önlemek için executors klasöründeki
+başlangıç dosyası kaldırıldı. 0.2.2 wheel içinde yalnızca RailwaySafety.py
+executor'ının bulunduğu kontrol edildi. 13 birim testi ve gerçek PyTorch/SDK
+ile örnek fotoğraf üzerinde native Base64/bytes/tekli liste testi geçti.
+Canlı uygulamanın PyTorch imajı ve RailwaySafety executor'ıyla tekrar kaydı
+ve deploy işlemi henüz doğrulanmadı. WebSocket bağlantı hataları da gözlendi.
