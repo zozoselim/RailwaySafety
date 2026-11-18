@@ -1,51 +1,123 @@
-# Railway Safety - NovaVision Package
+# RailwaySafety — NovaVision paketi
 
-Railway track visual inspection with YOLO11n.
+Mevcut eğitilmiş YOLO11n `assets/best.pt` modelini kullanarak ray görüntülerinde
+kusur tespiti yapar. Veri seti eğitimde kullanılır; uygulama çalışırken kod
+görüntüyü `best.pt` modeline verir. Her çalıştırmada yeniden eğitim gerekmez.
 
-## Detection classes
+Sınıflar modelin kendisinden okunur: `rail_crack`, `fastener_defect`,
+`broken_sleeper`, `obstacle`. `fastener_defect` fiziksel gevşeklik ölçümü
+değildir. Tespit çıkmaması hattın güvenli olduğu anlamına gelmez.
 
-- rail_crack
-- fastener_defect
-- broken_sleeper
-- obstacle
+## Yerel istemci
 
-The current model does not directly measure physical
-fastener looseness. Results are research/prototype outputs
-and must not be used as a sole railway safety decision.
+Python 3.10+ ve çalışan PyTorch ortamında, proje kökünden:
 
-## Model
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python apps/client.py path/to/image.jpg --device cpu --output outputs/result.json --save-image outputs/result.jpg
+```
 
-Copy the trained `best.pt` into `assets/best.pt`.
+GPU ortamında `--device 0` kullanılabilir. `--conf`, `--iou`, `--imgsz`
+isteğe bağlıdır. Çıkış piksel koordinatlı kutular ve sınıf/güven bilgileri
+içeren JSON'dur. PNG/JPEG gibi tek görüntü dosyası kabul edilir. Video/kamera
+işleme NovaVision Video Feed ile kare başına yapılır.
 
-## Local inference
+Model yolu varsayılan `assets/best.pt`; farklı ağırlık için
+`RAILWAY_SAFETY_MODEL_PATH` ortam değişkenini kullan. Bulunamazsa hata verir.
 
-Install dependencies and run:
+## Docker ile CPU çıkarımı
 
-    python apps/client.py path/to/image.jpg
+```powershell
+docker build -t railway-safety:0.2.0 .
+docker run --rm --mount "type=bind,source=C:\images,target=/data" railway-safety:0.2.0 /data/track.jpg --output /data/result.json --save-image /data/result.jpg
+```
 
-The result is a JSON string containing detections,
-class IDs, confidence values and bounding boxes.
+Bu Dockerfile bağımsız CPU istemcisi içindir. NovaVision SDK'sı ve platform
+servisleri bu imajın parçası değildir. Platform executor'ı hedef NovaVision
+runtime imajında çalıştırılır. Dockerfile CPU PyTorch kurar; GPU dağıtımı hedef
+NovaVision CUDA imajıyla doğrulanmalıdır.
 
-## NovaVision integration
+## NovaVision uygulaması
 
-SDK component interface follows the reference
-EnvironmentSecretsStore package architecture.
+Özel paket akışı:
 
-Before production registration, validate:
-- image input field and transport type
-- SDK schema and PackageHelper serialization
-- dependency availability inside the target container
-- CPU/CUDA execution
-- client compatibility
-- clean installation in Dev and Prod
+```text
+Video Feed ── image ──> RailwaySafety.inputImage
+Video Feed ── image ──> Draw Bounding Box.inputImage
+RailwaySafety.outputDetections ──> Draw Bounding Box.inputDetections
+Draw Bounding Box ──> Draw Label ──> Video View
+```
 
-## Model benchmark (baseline)
+`outputDetections` ayrıca Draw Label tespit girişine bağlanır.
+Alternatif olarak Models'e yüklenmiş aynı `best.pt`, hazır `YOLO Inference`
+düğümünde seçilebilir. Ayrıntılar: [NovaVision rehberi](docs/NOVAVISION.md).
 
-Validation mAP50: 0.806
-Test mAP50: 0.835
-Test mAP50-95: 0.433
-Test precision: 0.781
-Test recall: 0.774
+Özel pakette zorunlu `inputImage` girişi Image Load / Video Feed görüntüsünü
+alır (SDK medya/Redis taşıması dahil). Tek Image veya tek elemanlı Image listesi
+kabul edilir; çoklu görüntü listesi reddedilir. Base64 dosya metniyle yerel
+test `apps/client.py` üzerinden yapılır. Çıkışlar: `outputDetections` native
+SDK Detection listesi, `detections` ayrıntılı JSON metni. Ayarlar confidence,
+iou_threshold, device, image_size. SDK ortamında şema: `python apps/export.py`.
 
-The benchmark is preliminary and has limited
-broken-sleeper examples.
+## Eğitim ve doğrulama
+
+```powershell
+python apps/audit_dataset.py path/to/data.yaml
+python apps/inspect_model.py --output outputs/model.json
+python apps/validate_model.py path/to/data.yaml --split test --device cpu
+```
+
+İyileştirilmiş veri hazır olduğunda isteğe bağlı fine-tuning:
+
+```powershell
+python apps/train.py path/to/data.yaml --epochs 50 --device 0
+```
+
+[Colab/yerel eğitim not defteri](notebooks/train_railway.ipynb) aynı süreci
+gösterir. Yeni ağırlık `runs/railway_training/finetune*/weights/best.pt` altında
+oluşur; mevcut ağırlığı otomatik değiştirmez. İncelenmiş validation ve bağımsız
+test sonuçlarına göre yeni modeli seç.
+
+Mevcut validation metadata mAP50=0.80598, mAP50-95=0.42355; yeniden ölçüm
+değildir. Bu çalışmada 184 test görüntüsünde yeniden ölçülen mAP50=0.83509,
+mAP50-95=0.43335. Çatlak recall=0.54545; saha kullanımı için iyileştirilmelidir.
+Eğitimde yalnızca 26 kırık travers nesnesi vardır. Yeniden eğitim
+kararı ve kaynaklar: [model/veri raporu](docs/BENCHMARK.md).
+
+## Geliştirici kontrolü ve teslim
+
+```powershell
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+python -m pip wheel . --no-deps --wheel-dir dist
+python apps/package_release.py
+```
+
+Wheel `novavision.package` ad alanını korur ve mevcut `best.pt` dosyasını
+içerir. Mevcut `assets/best.pt` Git takibindedir; diğer eğitim ağırlıkları,
+veri setleri ve çalışma çıktıları depoya eklenmez. `sdk` adlı genel PyPI paketi
+gereksinimlerden çıkarılmıştır; gerçek `sdks.novavision` platformdan sağlanır.
+
+[Doğrulama kaydı](docs/VERIFICATION.md) ve [dokuz iş kartı](docs/cards/README.md).
+Kartlar yerel Markdown dosyalarıdır; harici panoda oluşturulmuş sayılmazlar.
+Üretim kullanımı için saha testi ve AlfaSuite dağıtım kontrolü gereklidir.
+
+## 0.2.1: Flow editöründe görüntü girişi
+
+`RailwayInputs.inputImage`, platformun çizim paketleriyle aynı doğrudan,
+zorunlu şema referansını kullanır. Önceki iki isteğe bağlı giriş kaldırıldı.
+Paketin 0.2.1 sürümünü yükledikten sonra SDK ortamında `python apps/export.py`
+ile şemayı yeniden üret; platformdaki paket tanımını yenile ve eski Railway
+Safety düğümünü kaldırıp yeniden ekle. `inputImage` girişini bağla:
+
+```text
+Image Load.outputImage ──> Railway Safety.inputImage
+Image Load.outputImage ──> Draw Bounding Box.inputImage
+Railway Safety.outputDetections ──> Draw Bounding Box.inputDetections
+Draw Bounding Box.outputImage ──> Image View
+```
+
+Railway Safety'nin solunda giriş görünmüyorsa Flow hâlâ eski paket/şema
+tanımını kullanıyor olabilir. Kutu çizimi için `detections` JSON metnini değil,
+`outputDetections` listesini seç.

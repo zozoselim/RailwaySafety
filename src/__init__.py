@@ -1,0 +1,1 @@
+"""RailwaySafety NovaVision component."""

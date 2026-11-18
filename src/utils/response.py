@@ -9,6 +9,7 @@ from ..models.PackageModel import (
     RailwayOutputs,
     PackageResponse,
     DetectionsOutput,
+    NativeDetectionsOutput,
 )
 
 
@@ -16,7 +17,8 @@ def build_response(context):
     outputs = RailwayOutputs(
         detections=DetectionsOutput(
             value=context.detections
-        )
+        ),
+        outputDetections=NativeDetectionsOutput(value=context.native_detections),
     )
 
     response = PackageResponse(outputs=outputs)

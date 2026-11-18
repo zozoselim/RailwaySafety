@@ -10,6 +10,7 @@ __pycache__/
 
 # Model weights
 assets/*.pt
+!assets/best.pt
 
 # Training outputs
 runs/
@@ -17,3 +18,8 @@ runs/
 
 # Generated files
 data.json
+build/
+dist/
+*.egg-info/
+outputs/
+.ruff_cache/
